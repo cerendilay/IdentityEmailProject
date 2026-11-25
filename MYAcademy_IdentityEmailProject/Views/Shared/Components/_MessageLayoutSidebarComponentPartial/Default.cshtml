@@ -1,0 +1,47 @@
+﻿@model List<MYAcademy_IdentityEmailProject.Entities.Category>
+@{
+    string Badge(int n) => n > 0 ? n.ToString() : "";
+    var colors = new[] { "#8B7FD6", "#5CC09A", "#EBA27A", "#4A7CC2", "#E07597", "#B88A12" };
+}
+<!-- =====================================================================
+       SHARED SIDEBAR — menü linkleri ve rozetler veritabanından
+       ===================================================================== -->
+<aside class="app-sidebar" id="appSidebar" aria-label="Ana menü">
+    <a class="brand" data-page="inbox" asp-controller="Message" asp-action="Inbox">
+        <div class="brand-logo"><i class="bi bi-envelope-paper-heart-fill"></i></div>
+        <div class="brand-name">Mail<span>ora</span></div>
+    </a>
+
+    <a class="btn-compose text-decoration-none" data-page="compose" asp-controller="Message" asp-action="CreateMessage" data-tip="Yeni Mesaj">
+        <i class="bi bi-pencil-square"></i> <span class="lbl">Yeni Mesaj</span>
+    </a>
+
+    <div class="nav-section-title">Menü</div>
+    <ul class="side-nav">
+        <li><a class="side-link" data-page="dashboard" asp-controller="Dashboard" asp-action="Index" data-tip="Dashboard"><i class="bi bi-grid-1x2"></i> <span class="lbl">Dashboard</span></a></li>
+        <li><a class="side-link" data-page="inbox" asp-controller="Message" asp-action="Inbox" data-tip="Gelen Kutusu"><i class="bi bi-inbox"></i> <span class="lbl">Gelen Kutusu</span> <span class="side-badge" id="badgeInbox">@Badge(ViewBag.UnreadCount)</span></a></li>
+        <li><a class="side-link" data-page="sent" asp-controller="Message" asp-action="Sendbox" data-tip="Gönderilenler"><i class="bi bi-send"></i> <span class="lbl">Gönderilenler</span></a></li>
+        <li><a class="side-link" data-page="drafts" asp-controller="Message" asp-action="Drafts" data-tip="Taslaklar"><i class="bi bi-file-earmark-text"></i> <span class="lbl">Taslaklar</span> <span class="side-badge muted">@Badge(ViewBag.DraftCount)</span></a></li>
+        <li><a class="side-link" data-page="starred" asp-controller="Message" asp-action="Starred" data-tip="Yıldızlı Mesajlar"><i class="bi bi-star"></i> <span class="lbl">Yıldızlı Mesajlar</span> <span class="side-badge muted" id="badgeStarred">@Badge(ViewBag.StarredCount)</span></a></li>
+        <li><a class="side-link" data-page="trash" asp-controller="Message" asp-action="Trash" data-tip="Çöp Kutusu"><i class="bi bi-trash3"></i> <span class="lbl">Çöp Kutusu</span> <span class="side-badge muted" id="badgeTrash">@Badge(ViewBag.TrashCount)</span></a></li>
+    </ul>
+
+    <div class="nav-section-title">Hesap</div>
+    <ul class="side-nav">
+        <li><a class="side-link" data-page="profile" asp-controller="Profile" asp-action="Index" data-tip="Profilim"><i class="bi bi-person-circle"></i> <span class="lbl">Profilim</span></a></li>
+    </ul>
+
+    <div class="nav-section-title">Kategoriler</div>
+    <ul class="side-labels">
+        @for (int i = 0; i < Model.Count; i++)
+        {
+            var c = Model[i];
+            <li>
+                <a asp-controller="Message" asp-action="Inbox" asp-route-categoryId="@c.CategoryId" data-tip="@c.CategoryName">
+                    <span class="dot" style="background:@colors[i % colors.Length]"></span> <span class="lbl">@c.CategoryName</span>
+                </a>
+            </li>
+        }
+    </ul>
+</aside>
+<div class="sidebar-backdrop" id="sidebarBackdrop"></div>

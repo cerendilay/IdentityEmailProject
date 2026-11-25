@@ -1,0 +1,126 @@
+@model MYAcademy_IdentityEmailProject.Entities.AppUser
+@{
+    ViewData["Title"] = "Dashboard";
+    ViewData["ActiveMenu"] = "dashboard";
+    Layout = "~/Views/MessageLayout/Index.cshtml";
+    var tr = new System.Globalization.CultureInfo("tr-TR");
+    var lastMessages = ViewBag.LastMessages as List<MYAcademy_IdentityEmailProject.Entities.Message> ?? new();
+    var categoryStats = ViewBag.CategoryStats as List<KeyValuePair<string, int>> ?? new();
+    var colors = new[] { "#8B7FD6", "#5CC09A", "#EBA27A", "#4A7CC2", "#E07597", "#B88A12", "#C8774A", "#3E9A77", "#5A4FB0", "#85899B" };
+    var total = categoryStats.Sum(x => x.Value);
+}
+
+<section class="dashboard">
+    <!-- Karşılama -->
+    <div class="db-welcome">
+        <div class="db-welcome-text">
+            <span class="db-date"><i class="bi bi-calendar3"></i> @DateTime.Now.ToString("d MMMM yyyy, dddd", tr)</span>
+            <h1>Merhaba, @Model.Name <span class="wave">👋</span></h1>
+            <p>Gelen kutunuzda <b>@ViewBag.UnreadCount</b> okunmamış mesaj var.</p>
+            <div class="db-welcome-row">
+                <a class="btn-send text-decoration-none" asp-controller="Message" asp-action="CreateMessage"><span class="lbl"><i class="bi bi-pencil-square"></i> Yeni Mesaj</span></a>
+                <a class="btn-soft" asp-controller="Message" asp-action="Inbox"><i class="bi bi-inbox"></i> Gelen Kutusu</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- İstatistik kartları -->
+    <div class="db-stats" style="grid-template-columns:repeat(auto-fit,minmax(180px,1fr))">
+        <a class="db-stat t-lav text-decoration-none" asp-controller="Message" asp-action="Inbox">
+            <div class="top"><div class="ic"><i class="bi bi-inbox"></i></div></div>
+            <div class="num">@ViewBag.InboxCount</div><div class="lbl">Gelen Mesaj</div>
+        </a>
+        <a class="db-stat t-blue text-decoration-none" asp-controller="Message" asp-action="Sendbox">
+            <div class="top"><div class="ic"><i class="bi bi-send"></i></div></div>
+            <div class="num">@ViewBag.SentCount</div><div class="lbl">Gönderilen</div>
+        </a>
+        <a class="db-stat t-peach text-decoration-none" asp-controller="Message" asp-action="Inbox" asp-route-filter="unread">
+            <div class="top"><div class="ic"><i class="bi bi-envelope"></i></div></div>
+            <div class="num">@ViewBag.UnreadCount</div><div class="lbl">Okunmamış</div>
+        </a>
+        <a class="db-stat t-lav text-decoration-none" asp-controller="Message" asp-action="Starred">
+            <div class="top"><div class="ic"><i class="bi bi-star"></i></div></div>
+            <div class="num">@ViewBag.StarredCount</div><div class="lbl">Yıldızlı</div>
+        </a>
+        <a class="db-stat t-mint text-decoration-none" asp-controller="Message" asp-action="Drafts">
+            <div class="top"><div class="ic"><i class="bi bi-file-earmark-text"></i></div></div>
+            <div class="num">@ViewBag.DraftCount</div><div class="lbl">Taslak</div>
+        </a>
+    </div>
+
+    <div class="db-row charts">
+        <!-- Son gelen mesajlar -->
+        <div class="db-card">
+            <div class="db-card-head">
+                <div><h3>Son Gelen Mesajlar</h3><p>Gelen kutunuzdaki en yeni 5 mesaj</p></div>
+                <a class="db-link" asp-controller="Message" asp-action="Inbox">Tümü <i class="bi bi-arrow-right"></i></a>
+            </div>
+            <div class="db-msgs">
+                @foreach (var m in lastMessages)
+                {
+                    <a class="db-msg text-decoration-none @(m.IsRead ? "" : "unread")" asp-controller="Message" asp-action="MessageDetail" asp-route-id="@m.MessageId">
+                        <span class="avatar sm av-lav">@m.SenderEmail.Substring(0, Math.Min(2, m.SenderEmail.Length)).ToUpper(tr)</span>
+                        <div class="bd">
+                            <div class="nm">@m.SenderEmail</div>
+                            <div class="sj">@m.Subject</div>
+                        </div>
+                        <span class="tm">@m.SendDate.ToString("dd.MM HH:mm")</span>
+                    </a>
+                }
+                @if (!lastMessages.Any())
+                {
+                    <div class="db-chart-empty" style="padding:30px"><div><i class="bi bi-inbox"></i>Henüz mesaj yok</div></div>
+                }
+            </div>
+        </div>
+
+        <!-- Kategorilere göre dağılım -->
+        <div class="db-card db-dist">
+            <div class="db-card-head">
+                <div><h3>Kategori Dağılımı</h3><p>Gelen mesajların kategorilere göre dağılımı</p></div>
+            </div>
+            <div class="db-dist-body">
+                @if (total > 0)
+                {
+                    <div class="db-donut-box">
+                        <canvas id="categoryChart"></canvas>
+                        <div class="db-donut-center"><div><b>@total</b><span>mesaj</span></div></div>
+                    </div>
+                    <ul class="db-dist-list">
+                        @for (int i = 0; i < categoryStats.Count; i++)
+                        {
+                            <li>
+                                <span class="db-dot" style="background:@colors[i % colors.Length]"></span>
+                                @categoryStats[i].Key
+                                <span class="c">@categoryStats[i].Value</span>
+                                <span class="p">%@(Math.Round(categoryStats[i].Value * 100.0 / total))</span>
+                            </li>
+                        }
+                    </ul>
+                }
+                else
+                {
+                    <div class="db-chart-empty" style="width:100%;padding:40px"><div><i class="bi bi-pie-chart"></i>Grafik için veri yok</div></div>
+                }
+            </div>
+        </div>
+    </div>
+</section>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <script>
+        (() => {
+            const el = document.getElementById('categoryChart');
+            if (!el) return;
+            const labels = @Json.Serialize(categoryStats.Select(x => x.Key));
+            const data = @Json.Serialize(categoryStats.Select(x => x.Value));
+            const colors = @Json.Serialize(colors);
+            new Chart(el, {
+                type: 'doughnut',
+                data: { labels, datasets: [{ data, backgroundColor: labels.map((_, i) => colors[i % colors.length]), borderWidth: 0 }] },
+                options: { cutout: '72%', plugins: { legend: { display: false } } }
+            });
+        })();
+    </script>
+}

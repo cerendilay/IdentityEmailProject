@@ -1,0 +1,9 @@
+@model List<MYAcademy_IdentityEmailProject.Entities.Message>
+@{
+    ViewData["Title"] = "Taslaklar";
+    ViewData["ActiveMenu"] = "drafts";
+    ViewData["ListType"] = "drafts";
+    Layout = "~/Views/MessageLayout/Index.cshtml";
+}
+
+<partial name="_MessageListPartial" model="Model" />

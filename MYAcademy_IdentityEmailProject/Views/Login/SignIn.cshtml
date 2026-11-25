@@ -1,0 +1,39 @@
+﻿@model UserLoginViewModel
+
+@{
+    Layout = null;
+}
+
+<link href="~/lib/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet" />
+
+<div class="container">
+    <br /><br />
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success">@TempData["Success"]</div>
+    }
+    @if (ViewBag.Error != null)
+    {
+        <div class="alert alert-danger">@ViewBag.Error</div>
+    }
+
+    <form method="post" asp-route-returnUrl="@Context.Request.Query["ReturnUrl"]">
+        <label>Kullanıcı Adınız</label>
+        <input type="text" asp-for="Username" class="form-control" />
+
+        <br />
+
+        <label>Şifreniz</label>
+        <input type="password" asp-for="Password" class="form-control" />
+
+        <br />
+
+        <button class="btn btn-primary">Giriş Yap</button>
+    </form>
+
+    <br />
+    <a asp-controller="Password" asp-action="ForgotPassword">Şifremi Unuttum</a> |
+    <a asp-controller="Register" asp-action="SignUp">Kayıt Ol</a> |
+    <a asp-controller="Register" asp-action="ConfirmMail">E-postamı Doğrula</a>
+</div>

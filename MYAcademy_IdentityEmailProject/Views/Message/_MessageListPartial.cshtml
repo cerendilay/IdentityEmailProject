@@ -1,0 +1,96 @@
+@model List<MYAcademy_IdentityEmailProject.Entities.Message>
+@using System.Net
+@using System.Text.RegularExpressions
+@*
+    Gönderilenler, Yıldızlı, Taslaklar ve Çöp Kutusu sayfalarının ortak listesi.
+    ViewData["ListType"]: "sent" | "starred" | "drafts" | "trash"
+*@
+@{
+    var listType = ViewData["ListType"] as string;
+    var tr = new System.Globalization.CultureInfo("tr-TR");
+
+    string Snippet(string? html)
+    {
+        if (string.IsNullOrWhiteSpace(html)) return "";
+        var text = WebUtility.HtmlDecode(Regex.Replace(html, "<[^>]+>", " "));
+        text = Regex.Replace(text, @"\s+", " ").Trim();
+        return text.Length > 120 ? text[..120] + "…" : text;
+    }
+}
+
+<section class="inbox">
+    <div class="panel list-panel">
+        <div class="list-head">
+            <div class="list-title">
+                <div>
+                    <h1>@ViewData["Title"]</h1>
+                    <div class="sub">@Model.Count mesaj</div>
+                </div>
+                <a class="btn-soft primary" asp-controller="Message" asp-action="CreateMessage"><i class="bi bi-pencil-square"></i> Yeni Mesaj</a>
+            </div>
+        </div>
+
+        <div class="msg-list">
+            @foreach (var m in Model)
+            {
+                var person = listType == "sent" || listType == "drafts" ? m.ReceiverEmail : m.SenderEmail;
+                var url = listType == "drafts"
+                    ? Url.Action("CreateMessage", "Message", new { id = m.MessageId })
+                    : listType == "trash" ? null : Url.Action("MessageDetail", "Message", new { id = m.MessageId });
+
+                <article class="msg-item @(listType != "sent" && listType != "drafts" && !m.IsRead ? "unread" : "")"
+                         style="@(url == null ? "cursor:default" : "")"
+                         onclick="@(url == null ? "" : $"location.href='{url}'")">
+                    <div class="lead">
+                        @if (listType == "starred")
+                        {
+                            <form asp-controller="Message" asp-action="ToggleStar" method="post" onclick="event.stopPropagation()">
+                                <input type="hidden" name="id" value="@m.MessageId" />
+                                <input type="hidden" name="starred" value="false" />
+                                <button class="star-btn on" type="submit" title="Yıldızı kaldır"><i class="bi bi-star-fill"></i></button>
+                            </form>
+                        }
+                    </div>
+                    <span class="avatar av-lav">@(string.IsNullOrEmpty(person) ? "?" : person.Substring(0, Math.Min(2, person.Length)).ToUpper(tr))</span>
+                    <div class="mi-sender">
+                        <span class="sender">@(listType == "sent" || listType == "drafts" ? "Kime: " : "")@(string.IsNullOrEmpty(person) ? "(alıcı yok)" : person)</span>
+                    </div>
+                    <div class="mi-main">
+                        <span class="subject">@(string.IsNullOrEmpty(m.Subject) ? "(konu yok)" : m.Subject)</span>
+                        <span class="snippet">@Snippet(m.MessageDetail)</span>
+                    </div>
+                    <div class="mi-meta" onclick="event.stopPropagation()">
+                        @if (m.Category != null)
+                        {
+                            <span class="tag tag-sistem">@m.Category.CategoryName</span>
+                        }
+                        @if (listType == "trash")
+                        {
+                            <form asp-controller="Message" asp-action="Restore" method="post" class="d-inline">
+                                <input type="hidden" name="id" value="@m.MessageId" />
+                                <button class="tool-btn" type="submit" title="Geri al"><i class="bi bi-arrow-counterclockwise"></i></button>
+                            </form>
+                        }
+                        @if (listType == "trash" || listType == "drafts")
+                        {
+                            <form asp-controller="Message" asp-action="PermanentDelete" method="post" class="d-inline"
+                                  onsubmit="return confirm('Mesaj kalıcı olarak silinecek. Emin misiniz?')">
+                                <input type="hidden" name="id" value="@m.MessageId" />
+                                <button class="tool-btn" type="submit" title="Kalıcı olarak sil"><i class="bi bi-x-octagon"></i></button>
+                            </form>
+                        }
+                    </div>
+                    <span class="time">@m.SendDate.ToString("dd.MM.yyyy HH:mm")</span>
+                </article>
+            }
+
+            @if (!Model.Any())
+            {
+                <div class="empty-list">
+                    <div class="ic"><i class="bi bi-inbox"></i></div>
+                    <h6>Burada henüz mesaj yok</h6>
+                </div>
+            }
+        </div>
+    </div>
+</section>

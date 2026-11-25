@@ -1,0 +1,98 @@
+@model MYAcademy_IdentityEmailProject.Entities.Message
+@using System.Globalization
+@{
+    bool isReceiver = ViewBag.IsReceiver == true;
+    ViewData["Title"] = Model.Subject;
+    ViewData["ActiveMenu"] = isReceiver ? "inbox" : "sent";
+    Layout = "~/Views/MessageLayout/Index.cshtml";
+    var tr = new CultureInfo("tr-TR");
+    var other = isReceiver ? Model.SenderEmail : Model.ReceiverEmail;
+    var initials = string.IsNullOrEmpty(other) ? "?" : other.Substring(0, Math.Min(2, other.Length)).ToUpper(tr);
+}
+
+<section class="msg-page">
+    <div class="mp-top">
+        <a class="btn-soft mp-back" href="@(isReceiver ? Url.Action("Inbox") : Url.Action("Sendbox"))"><i class="bi bi-arrow-left"></i> Geri</a>
+
+        <div class="mp-toolbar">
+            <a class="tool-btn" asp-action="CreateMessage" asp-route-replyId="@Model.MessageId" title="Yanıtla"><i class="bi bi-reply"></i></a>
+            <a class="tool-btn" asp-action="CreateMessage" asp-route-forwardId="@Model.MessageId" title="İlet"><i class="bi bi-forward"></i></a>
+            @if (isReceiver)
+            {
+                <span class="tb-divider"></span>
+                <form asp-action="MarkAsUnread" method="post" class="d-inline">
+                    <input type="hidden" name="ids" value="@Model.MessageId" />
+                    <button class="tool-btn" type="submit" title="Okunmadı olarak işaretle"><i class="bi bi-envelope"></i></button>
+                </form>
+                <form asp-action="Delete" method="post" class="d-inline">
+                    <input type="hidden" name="ids" value="@Model.MessageId" />
+                    <button class="tool-btn" type="submit" title="Çöp kutusuna taşı"><i class="bi bi-trash3"></i></button>
+                </form>
+            }
+        </div>
+    </div>
+
+    <div class="mp-grid">
+        <article class="mp-card">
+            <div class="pv-subject-row">
+                <h2 class="pv-subject">@Model.Subject</h2>
+                @if (isReceiver)
+                {
+                    <form asp-action="ToggleStar" method="post">
+                        <input type="hidden" name="id" value="@Model.MessageId" />
+                        <button class="star-btn @(Model.IsFavorite ? "on" : "")" type="submit" title="@(Model.IsFavorite ? "Yıldızı kaldır" : "Yıldızla")">
+                            <i class="bi @(Model.IsFavorite ? "bi-star-fill" : "bi-star")"></i>
+                        </button>
+                    </form>
+                }
+            </div>
+
+            <div class="pv-sender">
+                <span class="avatar lg av-lav">@initials</span>
+                <div class="who">
+                    <div class="nm">@Model.SenderEmail</div>
+                    <div class="to">Kime: <b>@Model.ReceiverEmail</b></div>
+                </div>
+                <div class="dt">
+                    <b>@Model.SendDate.ToString("d MMMM yyyy", tr)</b>
+                    @Model.SendDate.ToString("dddd HH:mm", tr)
+                </div>
+            </div>
+
+            @* Mesaj HTML içeriği script çalıştıramayan (sandbox) bir iframe içinde gösterilir → XSS'e karşı güvenli *@
+            <iframe id="msgBody" class="pv-body" sandbox="allow-same-origin allow-popups"
+                    style="width:100%;border:0;min-height:120px"
+                    srcdoc="@("<base target=\"_blank\"><style>body{font-family:'Plus Jakarta Sans',sans-serif;font-size:14.5px;line-height:1.75;color:#45485E;margin:0}blockquote{border-left:3px solid #EAE6FA;margin:0;padding-left:12px;color:#85899B}</style>" + Model.MessageDetail)"></iframe>
+
+            <div class="pv-actions">
+                <a class="btn-soft primary" asp-action="CreateMessage" asp-route-replyId="@Model.MessageId"><i class="bi bi-reply"></i> Yanıtla</a>
+                <a class="btn-soft" asp-action="CreateMessage" asp-route-forwardId="@Model.MessageId"><i class="bi bi-forward"></i> İlet</a>
+            </div>
+        </article>
+
+        <aside class="mp-side">
+            <div class="mp-side-card">
+                <h6>Mesaj Bilgileri</h6>
+                <ul class="mp-facts" style="border:0;margin:0;padding:0">
+                    <li><span class="k"><i class="bi bi-person"></i> Gönderen</span><span class="v">@Model.SenderEmail</span></li>
+                    <li><span class="k"><i class="bi bi-person-check"></i> Alıcı</span><span class="v">@Model.ReceiverEmail</span></li>
+                    <li><span class="k"><i class="bi bi-tag"></i> Kategori</span><span class="v">@(Model.Category?.CategoryName ?? "-")</span></li>
+                    <li><span class="k"><i class="bi bi-calendar"></i> Tarih</span><span class="v">@Model.SendDate.ToString("dd.MM.yyyy HH:mm")</span></li>
+                    <li><span class="k"><i class="bi bi-star"></i> Yıldızlı</span><span class="v">@(Model.IsFavorite ? "Evet" : "Hayır")</span></li>
+                </ul>
+            </div>
+        </aside>
+    </div>
+</section>
+
+@section Scripts {
+    <script>
+        // iframe yüksekliğini içeriğe göre ayarla
+        (() => {
+            const f = document.getElementById('msgBody');
+            const fit = () => { try { f.style.height = (f.contentDocument.body.scrollHeight + 20) + 'px'; } catch (e) { } };
+            f.addEventListener('load', fit);
+            fit();
+        })();
+    </script>
+}

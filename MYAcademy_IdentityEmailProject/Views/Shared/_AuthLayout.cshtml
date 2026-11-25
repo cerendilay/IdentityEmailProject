@@ -1,0 +1,31 @@
+@* Giriş dışı sayfalar (doğrulama kodu, şifremi unuttum, şifre yenileme) için Register temasını kullanan sade layout *@
+<!DOCTYPE html>
+<html lang="tr">
+@await Component.InvokeAsync("_RegisterStyleComponentPartial")
+<body>
+    <div class="auth-bg" aria-hidden="true">
+        <span class="g1"></span>
+        <span class="g2"></span>
+        <span class="g3"></span>
+    </div>
+
+    <main class="auth-page">
+        <div class="auth-card">
+            @await Component.InvokeAsync("_RegisterBrandComponentPartial")
+
+            <section class="auth-form-wrap">
+                <div>
+                    @RenderBody()
+                </div>
+            </section>
+        </div>
+    </main>
+    <style>
+        .auth-alert { padding: 12px 14px; border-radius: 12px; font-size: 13.5px; margin-bottom: 16px; }
+        .auth-alert.err { background: #FBE7EE; color: #C2476B; }
+        .auth-alert.ok { background: #E3F5EE; color: #3E9A77; }
+        .auth-alert ul { margin: 0; padding-left: 18px; }
+        .auth-links { display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap; margin-top: 16px; font-size: 13.5px; }
+    </style>
+</body>
+</html>

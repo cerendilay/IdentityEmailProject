@@ -1,0 +1,96 @@
+﻿@model MYAcademy_IdentityEmailProject.Entities.AppUser
+@{
+    var fullName = $"{Model?.Name} {Model?.Surname}".Trim();
+    if (string.IsNullOrEmpty(fullName)) { fullName = Model?.UserName ?? ""; }
+    var initials = string.Concat(fullName.Split(' ', StringSplitOptions.RemoveEmptyEntries).Take(2).Select(p => p[0])).ToUpper();
+    var notifications = ViewBag.Notifications as List<MYAcademy_IdentityEmailProject.Entities.Message> ?? new();
+}
+<!-- =====================================================================
+       SHARED NAVBAR — oturum açan kullanıcının bilgileri
+       ===================================================================== -->
+<header class="app-navbar">
+    <button class="nav-toggle" id="sidebarToggle" type="button" aria-label="Menüyü daralt / genişlet" title="Menüyü daralt"><i class="bi bi-list"></i></button>
+
+    <div class="global-search">
+        <i class="bi bi-search"></i>
+        <input type="search" id="globalSearch" placeholder="Mesajlarda, kişilerde ara…" autocomplete="off">
+        <span class="kbd">Ctrl K</span>
+    </div>
+
+    <div class="nav-actions">
+        <div class="dropdown">
+            <button class="icon-btn" type="button" data-bs-toggle="dropdown" aria-expanded="false" title="Bildirimler">
+                <i class="bi bi-bell"></i>
+                @if (notifications.Any())
+                {
+                    <span class="pip"></span>
+                }
+            </button>
+            <div class="dropdown-menu dropdown-menu-end notif-menu">
+                <div class="d-flex justify-content-between align-items-center px-2 pt-1 pb-2">
+                    <strong style="font-size:14px">Bildirimler</strong>
+                    <span class="tag tag-is">@notifications.Count yeni</span>
+                </div>
+                @foreach (var n in notifications)
+                {
+                    <a class="notif-item text-decoration-none" style="color:inherit" asp-controller="Message" asp-action="MessageDetail" asp-route-id="@n.MessageId">
+                        <div class="ni av-lav"><i class="bi bi-envelope"></i></div>
+                        <div><div class="nt">@n.SenderEmail: @n.Subject</div><div class="nd">@n.SendDate.ToString("dd.MM.yyyy HH:mm")</div></div>
+                    </a>
+                }
+                @if (!notifications.Any())
+                {
+                    <div class="px-2 pb-2" style="font-size:13px;color:var(--muted)">Yeni bildirim yok.</div>
+                }
+            </div>
+        </div>
+
+        <div class="dropdown">
+            <button class="user-chip" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                <span class="avatar sm av-user">
+                    @if (!string.IsNullOrEmpty(Model?.ImageUrl))
+                    {
+                        <img src="@Model.ImageUrl" alt="" />
+                    }
+                    else
+                    {
+                        @initials
+                    }
+                </span>
+                <span class="meta">
+                    <span class="name d-block">@fullName</span>
+                    <span class="role d-block">@@@Model?.UserName</span>
+                </span>
+                <i class="bi bi-chevron-down"></i>
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end">
+                <li class="dd-head">
+                    <span class="avatar av-user">
+                        @if (!string.IsNullOrEmpty(Model?.ImageUrl))
+                        {
+                            <img src="@Model.ImageUrl" alt="" />
+                        }
+                        else
+                        {
+                            @initials
+                        }
+                    </span>
+                    <div style="min-width:0">
+                        <div style="font-weight:700">@fullName</div>
+                        <div style="font-size:12.5px;color:var(--muted)">@Model?.Email</div>
+                    </div>
+                </li>
+                <li><hr class="dropdown-divider"></li>
+                <li><a class="dropdown-item" asp-controller="Profile" asp-action="Index"><i class="bi bi-person"></i> Profilim</a></li>
+                <li><a class="dropdown-item" asp-controller="Dashboard" asp-action="Index"><i class="bi bi-grid-1x2"></i> Dashboard</a></li>
+                <li><hr class="dropdown-divider"></li>
+                <li>
+                    <form asp-controller="Login" asp-action="LogOut" method="post">
+                        <button type="submit" class="dropdown-item danger"><i class="bi bi-box-arrow-right"></i> Çıkış Yap</button>
+                    </form>
+                </li>
+            </ul>
+        </div>
+    </div>
+</header>
+<!-- /SHARED NAVBAR -->

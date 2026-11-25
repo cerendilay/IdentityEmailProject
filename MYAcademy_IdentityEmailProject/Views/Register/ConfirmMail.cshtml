@@ -1,0 +1,46 @@
+@model ConfirmMailViewModel
+@{
+    Layout = "~/Views/Shared/_AuthLayout.cshtml";
+}
+
+<div class="form-head">
+    <h1>E-posta Doğrulama</h1>
+    <p>E-posta adresinize gönderilen 6 haneli doğrulama kodunu girin.</p>
+</div>
+
+@if (TempData["Success"] != null)
+{
+    <div class="auth-alert ok">@TempData["Success"]</div>
+}
+@if (TempData["Error"] != null)
+{
+    <div class="auth-alert err">@TempData["Error"]</div>
+}
+<div asp-validation-summary="All" class="auth-alert err" style="@(ViewData.ModelState.IsValid ? "display:none" : "")"></div>
+
+<form asp-controller="Register" asp-action="ConfirmMail" method="post">
+    <div class="form-grid">
+        <div class="field span-2">
+            <label asp-for="Email">Email</label>
+            <div class="input-wrap">
+                <i class="bi bi-envelope lead"></i>
+                <input asp-for="Email" class="a-input" type="email" placeholder="ornek@mail.com" />
+            </div>
+        </div>
+        <div class="field span-2">
+            <label asp-for="ConfirmCode">Doğrulama Kodu</label>
+            <div class="input-wrap">
+                <i class="bi bi-shield-lock lead"></i>
+                <input asp-for="ConfirmCode" class="a-input" type="text" inputmode="numeric" maxlength="6" placeholder="123456" autocomplete="one-time-code" />
+            </div>
+        </div>
+    </div>
+
+    <button type="submit" class="btn-primary-x"><span class="lbl">Hesabı Doğrula</span> <i class="bi bi-arrow-right"></i></button>
+</form>
+
+<form asp-controller="Register" asp-action="ResendCode" method="post" class="auth-links">
+    <input type="hidden" name="email" value="@Model?.Email" />
+    <button type="submit" class="btn-ghost">Kodu tekrar gönder</button>
+    <a asp-controller="Login" asp-action="SignIn">Giriş sayfasına dön</a>
+</form>

@@ -1,0 +1,134 @@
+@model MYAcademy_IdentityEmailProject.Entities.AppUser
+@{
+    ViewData["Title"] = "Profilim";
+    ViewData["ActiveMenu"] = "profile";
+    Layout = "~/Views/MessageLayout/Index.cshtml";
+    var fullName = $"{Model.Name} {Model.Surname}".Trim();
+    var initials = string.Concat(fullName.Split(' ', StringSplitOptions.RemoveEmptyEntries).Take(2).Select(p => p[0])).ToUpper();
+}
+
+<section class="profile">
+    <div class="pf-head">
+        <h1>Profilim</h1>
+        <p>Hesap bilgilerinizi ve şifrenizi buradan yönetebilirsiniz.</p>
+    </div>
+
+    <!-- Üst profil kartı -->
+    <div class="pf-hero">
+        <div class="pf-cover"></div>
+        <div class="pf-main">
+            <div class="pf-avatar-wrap">
+                <span class="avatar pf-avatar av-user">
+                    @if (!string.IsNullOrEmpty(Model.ImageUrl))
+                    {
+                        <img src="@Model.ImageUrl" alt="Profil fotoğrafı" />
+                    }
+                    else
+                    {
+                        @initials
+                    }
+                </span>
+            </div>
+            <div class="pf-id">
+                <div class="pf-name-row">
+                    <h2>@fullName</h2>
+                    @if (Model.EmailConfirmed)
+                    {
+                        <span class="pf-status">Doğrulanmış hesap</span>
+                    }
+                </div>
+                <div class="pf-username">@@@Model.UserName</div>
+                <div class="pf-meta">
+                    <span><i class="bi bi-envelope"></i> @Model.Email</span>
+                    @if (!string.IsNullOrEmpty(Model.Description))
+                    {
+                        <span><i class="bi bi-info-circle"></i> @Model.Description</span>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- İstatistikler -->
+    <div class="pf-stats">
+        <a class="pf-stat text-decoration-none" asp-controller="Message" asp-action="Inbox"><div class="ic av-lav"><i class="bi bi-inbox"></i></div><div><div class="num">@ViewBag.InboxCount</div><div class="lbl">Gelen</div></div></a>
+        <a class="pf-stat text-decoration-none" asp-controller="Message" asp-action="Sendbox"><div class="ic av-blue"><i class="bi bi-send"></i></div><div><div class="num">@ViewBag.SentCount</div><div class="lbl">Gönderilen</div></div></a>
+        <a class="pf-stat text-decoration-none" asp-controller="Message" asp-action="Starred"><div class="ic av-sun"><i class="bi bi-star"></i></div><div><div class="num">@ViewBag.StarredCount</div><div class="lbl">Yıldızlı</div></div></a>
+        <a class="pf-stat text-decoration-none" asp-controller="Message" asp-action="Drafts"><div class="ic av-mint"><i class="bi bi-file-earmark-text"></i></div><div><div class="num">@ViewBag.DraftCount</div><div class="lbl">Taslak</div></div></a>
+    </div>
+
+    <div class="pf-grid">
+        <!-- Hesap bilgileri -->
+        <form class="pf-card" asp-controller="Profile" asp-action="Update" method="post" enctype="multipart/form-data">
+            <div class="pf-card-head">
+                <div class="ic av-lav"><i class="bi bi-person-vcard"></i></div>
+                <div><h3>Hesap Bilgileri</h3><p>Ad, soyad, açıklama ve profil fotoğrafı</p></div>
+            </div>
+            <div class="pf-card-body">
+                @if (TempData["ProfileError"] != null)
+                {
+                    <div class="pf-note" style="background:var(--rose);color:#C2476B;margin:0 0 16px">@TempData["ProfileError"]</div>
+                }
+                <div class="pf-form-grid">
+                    <div class="pf-field">
+                        <label for="Name">Ad <span class="req">*</span></label>
+                        <div class="pf-input-wrap"><i class="bi bi-person lead"></i><input class="pf-input" id="Name" name="Name" value="@Model.Name" maxlength="50" required /></div>
+                    </div>
+                    <div class="pf-field">
+                        <label for="Surname">Soyad <span class="req">*</span></label>
+                        <div class="pf-input-wrap"><i class="bi bi-person lead"></i><input class="pf-input" id="Surname" name="Surname" value="@Model.Surname" maxlength="50" required /></div>
+                    </div>
+                    <div class="pf-field">
+                        <label>Kullanıcı Adı</label>
+                        <div class="pf-input-wrap"><i class="bi bi-at lead"></i><input class="pf-input" value="@Model.UserName" disabled /></div>
+                    </div>
+                    <div class="pf-field">
+                        <label>E-posta</label>
+                        <div class="pf-input-wrap"><i class="bi bi-envelope lead"></i><input class="pf-input" value="@Model.Email" disabled /></div>
+                    </div>
+                    <div class="pf-field span-2">
+                        <label for="Description">Hakkımda</label>
+                        <textarea class="pf-input" id="Description" name="Description" maxlength="300">@Model.Description</textarea>
+                    </div>
+                    <div class="pf-field span-2">
+                        <label for="Image">Profil Fotoğrafı</label>
+                        <input class="form-control" type="file" id="Image" name="Image" accept=".jpg,.jpeg,.png,.gif,.webp" />
+                        <div class="pf-hint"><span>jpg, png, gif, webp · en fazla 2 MB</span></div>
+                    </div>
+                </div>
+            </div>
+            <div class="pf-card-foot">
+                <button type="submit" class="btn-send"><span class="lbl"><i class="bi bi-check2"></i> Kaydet</span></button>
+            </div>
+        </form>
+
+        <!-- Şifre değiştir -->
+        <form class="pf-card" asp-controller="Profile" asp-action="ChangePassword" method="post">
+            <div class="pf-card-head">
+                <div class="ic av-rose"><i class="bi bi-shield-lock"></i></div>
+                <div><h3>Şifre Değiştir</h3><p>Mevcut şifrenizi girerek yeni şifre belirleyin</p></div>
+            </div>
+            <div class="pf-card-body pf-stack">
+                @if (TempData["PasswordError"] != null)
+                {
+                    <div class="pf-note" style="background:var(--rose);color:#C2476B;margin:0">@TempData["PasswordError"]</div>
+                }
+                <div class="pf-field">
+                    <label for="CurrentPassword">Mevcut Şifre</label>
+                    <div class="pf-input-wrap"><i class="bi bi-lock lead"></i><input class="pf-input" type="password" id="CurrentPassword" name="CurrentPassword" autocomplete="current-password" required /></div>
+                </div>
+                <div class="pf-field">
+                    <label for="NewPassword">Yeni Şifre</label>
+                    <div class="pf-input-wrap"><i class="bi bi-key lead"></i><input class="pf-input" type="password" id="NewPassword" name="NewPassword" autocomplete="new-password" required /></div>
+                </div>
+                <div class="pf-field">
+                    <label for="NewPasswordConfirm">Yeni Şifre Tekrar</label>
+                    <div class="pf-input-wrap"><i class="bi bi-key lead"></i><input class="pf-input" type="password" id="NewPasswordConfirm" name="NewPasswordConfirm" autocomplete="new-password" required /></div>
+                </div>
+            </div>
+            <div class="pf-card-foot">
+                <button type="submit" class="btn-send"><span class="lbl"><i class="bi bi-shield-check"></i> Şifreyi Değiştir</span></button>
+            </div>
+        </form>
+    </div>
+</section>
