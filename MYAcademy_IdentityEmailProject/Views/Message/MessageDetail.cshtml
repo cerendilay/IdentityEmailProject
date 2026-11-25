@@ -61,8 +61,8 @@
 
             @* Mesaj HTML içeriği script çalıştıramayan (sandbox) bir iframe içinde gösterilir → XSS'e karşı güvenli *@
             <iframe id="msgBody" class="pv-body" sandbox="allow-same-origin allow-popups"
-                    style="width:100%;border:0;min-height:120px"
-                    srcdoc="@("<base target=\"_blank\"><style>body{font-family:'Plus Jakarta Sans',sans-serif;font-size:14.5px;line-height:1.75;color:#45485E;margin:0}blockquote{border-left:3px solid #EAE6FA;margin:0;padding-left:12px;color:#85899B}</style>" + Model.MessageDetail)"></iframe>
+                    style="width:100%;border:0;min-height:120px" scrolling="no"
+                    srcdoc="@("<base target=\"_blank\"><link href=\"https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&display=swap\" rel=\"stylesheet\"><style>html,body{overflow:hidden}body{font-family:'Plus Jakarta Sans',sans-serif;font-size:14.5px;line-height:1.75;color:#45485E;margin:0}blockquote{border-left:3px solid #EAE6FA;margin:0;padding-left:12px;color:#85899B}</style>" + Model.MessageDetail)"></iframe>
 
             <div class="pv-actions">
                 <a class="btn-soft primary" asp-action="CreateMessage" asp-route-replyId="@Model.MessageId"><i class="bi bi-reply"></i> Yanıtla</a>
